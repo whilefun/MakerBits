@@ -1,0 +1,6 @@
+#Ignore the _Ignore directory (it contains drivers and stuff that doesn't need to be in the repo)
+/_[Ii]gnore/
+
+# Other bits to ignore
+*.exe
+
