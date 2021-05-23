@@ -10,7 +10,7 @@
 #
 
 # secrets.h with SSID info
-#ePaperDisplay/src/customContent/secrets.h
+ePaperDisplay/src/customContent/secrets.h
 
 # base directory of vanilla reference files
 ePaperDisplay/Feather_ePaper_Quotes/
