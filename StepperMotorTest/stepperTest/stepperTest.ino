@@ -27,7 +27,7 @@ bool wasHoldingResetButton = false;
 //int currentDegreesFromHome = 0;
 int currentStepsFromHome = 0;
 //const int TargetStepsFromHome = 90 * CompassStepsForOneDegree;
-const int TargetStepsFromHome = 1024;
+const int TargetStepsFromHome = 512;
 
 
 //
