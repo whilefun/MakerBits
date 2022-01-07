@@ -18,21 +18,34 @@ const int ButtonPinCW = 9;
 const int ButtonPinACW = 8;
 const int ButtonPinResetHome = 10;
 
+const int LEDPinRed = 2;
+const int LEDPinGreen = 3;
+
 int buttonStateCW = 0;
 int buttonStateACW = 0;
 int buttonStateResetHome = 0;
 bool wasHoldingResetButton = false;
 
 //const int TargetDegreesFromHome = 90;
-//int currentDegreesFromHome = 0;
+
 int currentStepsFromHome = 0;
-//const int TargetStepsFromHome = 90 * CompassStepsForOneDegree;
-const int TargetStepsFromHome = 512;
+
+//const int TargetStepsFromHome = 512;
+//int targetStepsFromHome = 512;
+int targetStepsFromHome = 0;
+
+int currentTargetHeadingDegrees = 0;
 
 
-//
-// AdjustmentInSteps = ((Newcompass-oldcompass)/360)*TOTAL_MOTOR_STEPS ?
-//
+
+// Receive data test
+int dataReceivedState = 0;
+
+const byte numChars = 32;
+char receivedSerialChars[numChars];
+boolean newData = false;
+
+int parsedHeadingInteger = 0;
 
 
 void setup()
@@ -45,6 +58,9 @@ void setup()
   pinMode(ButtonPinCW, INPUT);
   pinMode(ButtonPinACW, INPUT);
   pinMode(ButtonPinResetHome, INPUT);
+
+  pinMode(LEDPinRed, OUTPUT);
+  pinMode(LEDPinGreen, OUTPUT);
 
   // set the speed of the motor to 30 RPMs
   stepper.setSpeed(MAX_RPM);
@@ -63,6 +79,10 @@ void loop()
   if(buttonStateResetHome == HIGH)
   {
 
+    // Set debug LEDs to match button states
+    digitalWrite(LEDPinRed, buttonStateCW);
+    digitalWrite(LEDPinGreen, buttonStateACW);
+
     Serial.println("HOLDING RESET");
     wasHoldingResetButton = true;
   
@@ -75,7 +95,7 @@ void loop()
       
     }
     // ...and anti-clockwise
-    else  if(buttonStateACW == HIGH)
+    else if(buttonStateACW == HIGH)
     {
       
       Serial.println("Anti-ClockWise!");
@@ -100,28 +120,216 @@ void loop()
     {
 
       // Seek current target position //
-
-      // And I am currently less than target
-      if(currentStepsFromHome < TargetStepsFromHome)
+      if(currentStepsFromHome != targetStepsFromHome)
       {
 
-        // Move ONE degree toward target
-        currentStepsFromHome += 1;
-        //stepper.step(CompassStepsForOneDegree);
-        stepper.step(1);
+        // And I am currently less than target
+        if(currentStepsFromHome < targetStepsFromHome)
+        {
+  
+          // Move ONE degree forwards toward target
+          currentStepsFromHome += 1;
+          //stepper.step(CompassStepsForOneDegree);
+          stepper.step(1);
 
-        Serial.print("Moving toward target! (");
-        Serial.print(currentStepsFromHome);
-        Serial.print("/");
-        Serial.print(TargetStepsFromHome);
-        Serial.println(")");
+          /*
+          Serial.print("Moving toward target! (");
+          Serial.print(currentStepsFromHome);
+          Serial.print("/");
+          Serial.print(targetStepsFromHome);
+          Serial.println(")");
+          */
+          
+        }
+        // Otherwise if I am currently greater than target
+        else if(currentStepsFromHome > targetStepsFromHome)
+        {
+  
+          // Move ONE degree backwards toward target
+          currentStepsFromHome -= 1;
+          stepper.step(-1);
+
+          /*
+          Serial.print("Moving toward target! (");
+          Serial.print(currentStepsFromHome);
+          Serial.print("/");
+          Serial.print(targetStepsFromHome);
+          Serial.println(")");
+          */
+          
+        }
         
       }
 
     }
      
+
+    // Receive data test //
+
+    receiveDataWord();
+    showNewNumber();
+
+    /*
+    if(newData == true)
+    {
+      digitalWrite(LEDPinGreen, HIGH);
+      digitalWrite(LEDPinRed, LOW);
+    }
+    else
+    {
+      digitalWrite(LEDPinGreen, LOW);
+      digitalWrite(LEDPinRed, HIGH);
+    }
+    */
+    
+    /*
+    char receivedValue;
+
+    if(Serial.available() > 0)  
+    {          
+
+       receivedValue = Serial.read();  
+
+       if(receivedValue == '1')
+       {
+        
+          dataReceivedState = 1;
+          // Set debug LEDs to match button states
+          
+          digitalWrite(LEDPinGreen, HIGH);
+          digitalWrite(LEDPinRed, LOW);
+
+       }
+       else if(receivedValue == '0')
+       {
+
+          dataReceivedState = 0;
+          digitalWrite(LEDPinGreen, LOW);
+          digitalWrite(LEDPinRed, HIGH);
+        
+       }
+       else
+       {
+
+          digitalWrite(LEDPinGreen, LOW);
+          digitalWrite(LEDPinRed, LOW);
+
+       }
+
+        Serial.print("RECEIVED'");
+        Serial.print(receivedValue);
+        Serial.println("'");
+
+       //delay(50);
+       
+    }
+    */
     
 
   }
+    
+}
+
+void receiveDataWord() 
+{
+  
+    static byte index = 0;
+    char endMarker = '\n';
+    char receivedChar;
+    
+    if (Serial.available() > 0) 
+    {
+      
+        receivedChar = Serial.read();
+
+        if (receivedChar != endMarker) 
+        {
+          
+            receivedSerialChars[index] = receivedChar;
+            index++;
+            
+            if (index >= numChars)
+            {
+                index = numChars - 1;
+            }
+            
+        }
+        else
+        {
+          
+          // Terminate the string
+          receivedSerialChars[index] = '\0';
+          index = 0;
+          newData = true;
+          
+        }
+        
+    }
+    
+}
+
+void showNewNumber()
+{
+
+    if (newData == true)
+    {
+      
+        parsedHeadingInteger = 0;
+        parsedHeadingInteger = atoi(receivedSerialChars);
+
+        // Assume we're given value 0-360 degrees
+        // TODO: Calculate target HEADING in degrees
+
+        // Rotation of 90 degrees is 512 steps
+        // Rotation of 180 degrees is 1024 steps
+        // Rotation of 270 degrees is 1024 steps
+        // Rotation of 360 degrees is 2048 steps
+
+        // But we need to check where we are now vs target. If we're at 355 degrees, and want
+        // to go to 5 degrees, we need to go UP to 259, 0, then to 5, not back around to 
+        // 350, then back to zero
+
+        // One degree is 2048/360 = 5.688888888889
+        
+        int headingDelta = (currentTargetHeadingDegrees - parsedHeadingInteger);
+
+
+        // If my heading delta greater than 180 degrees, the change required is 180-delta?
+        if(headingDelta > 180)
+        {
+
+          currentTargetHeadingDegrees = parsedHeadingInteger;
+          targetStepsFromHome = currentTargetHeadingDegrees * 5.688888888889;
+          
+        }
+        else
+        {
+          
+          currentTargetHeadingDegrees = parsedHeadingInteger;
+          targetStepsFromHome = currentTargetHeadingDegrees * 5.688888888889;
+          
+        
+        }
+
+
+        
+        
+        
+        Serial.print("Received ");
+        Serial.println(receivedSerialChars);
+        Serial.print(", Data as Number=");
+        Serial.print(parsedHeadingInteger);
+        Serial.print(", NEW HEADING=");
+        Serial.print(currentTargetHeadingDegrees);
+        Serial.print(", TARGETSTEPS=");
+        Serial.print(targetStepsFromHome);
+        Serial.print(", DELTA=");
+        Serial.println(headingDelta);
+
+
+        
+        newData = false;
+    
+    }
     
 }
