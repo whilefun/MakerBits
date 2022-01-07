@@ -1,21 +1,19 @@
 #include <Stepper.h>
 
 // change this to the number of steps on your motor
-#define TOTAL_MOTOR_STEPS 1024
-#define MAX_RPM 60
-//#define FINE_ADJUST_STEP_INCREMENT TOTAL_MOTOR_STEPS / 360
+#define TOTAL_MOTOR_STEPS 4096
+#define MAX_RPM 6
 
 const int CompassStepsForOneDegree = TOTAL_MOTOR_STEPS / 360;
-
-const int FineAdjustmentStep = TOTAL_MOTOR_STEPS / 360;
+const int FineAdjustmentStep = TOTAL_MOTOR_STEPS / 720;
 
 // create an instance of the stepper class, specifying
 // the number of steps of the motor and the pins it's
 // attached to
 Stepper stepper(TOTAL_MOTOR_STEPS, 4, 5, 6, 7);
 
-const int buttonPinCW = 8;
-const int buttonPinACW = 9;
+const int buttonPinCW = 9;
+const int buttonPinACW = 8;
 
 const int buttonPinResetHome = 10;
 
@@ -25,15 +23,16 @@ int buttonStateResetHome = 0;
 
 bool wasHoldingResetButton = false;
 
-
-
-
 int currentStepsFromHome = 0;
 int currentDegreesFromHome = 0;
 
 int targetDegreesFromHome = 90;
 int targetStepsFromHome = 90 * CompassStepsForOneDegree;
 
+
+//
+// AdjustmentInSteps = ((Newcompass-oldcompass)/360)*TOTAL_MOTOR_STEPS ?
+//
 
 
 
@@ -70,7 +69,6 @@ void loop()
     wasHoldingResetButton = true;
     
     Serial.println("HOLDING RESET");
-
   
     // Allow for fine adjustments clockwise
     if(buttonStateCW == HIGH)
@@ -97,6 +95,7 @@ void loop()
       Serial.println("Reset Home!");
       currentStepsFromHome = 0;
       currentDegreesFromHome = 0;
+      
       wasHoldingResetButton = false;
       
     }
@@ -124,7 +123,9 @@ void loop()
           
           stepper.step(CompassStepsForOneDegree);
 
-          delay(10);
+          // Dont' need this. What if I add a really big delay?
+          //delay(10);
+          //delay(50);
           
         }
 
