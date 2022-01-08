@@ -34,7 +34,7 @@ int currentStepsFromHome = 0;
 //int targetStepsFromHome = 512;
 int targetStepsFromHome = 0;
 
-int currentTargetHeadingDegrees = 0;
+//int currentTargetHeadingDegrees = 0;
 
 
 
@@ -46,6 +46,11 @@ char receivedSerialChars[numChars];
 boolean newData = false;
 
 int parsedHeadingInteger = 0;
+
+
+int previousHeadingDegrees = 0;
+int currentHeadingDegrees = 0;
+
 
 
 void setup()
@@ -291,66 +296,29 @@ void showNewNumber()
 
         // One degree is 2048/360 = 5.688888888889
         
-        int oldHeading = currentTargetHeadingDegrees;
-        int desiredHeading = parsedHeadingInteger;
-        int headingDelta = (oldHeading - parsedHeadingInteger);
-        int appliedAngleChange = 0;   
-      
-        // LOL this is trash and needs rework
+        previousHeadingDegrees = currentHeadingDegrees;
+        currentHeadingDegrees = parsedHeadingInteger;
 
-        // Then adjust required steps to get to that heading based on angle delta
+        int delta = currentHeadingDegrees - previousHeadingDegrees;
 
-        // Positive Delta
-        if(headingDelta > 0)
+        if(abs(delta) > 180)
         {
 
-          // If my heading delta greater than 180 degrees, the change required is 180-delta?
-          if(headingDelta > 180)
+          if(delta < 0)
           {
-
-            // Going from 355 degrees to 5 degress fails (delta 350)
-
-            Serial.println("CASE 1");
-            appliedAngleChange = -(360 - currentTargetHeadingDegrees);
-            
+            delta += 360;
           }
           else
           {
-
-            Serial.println("CASE 2");
-            appliedAngleChange = currentTargetHeadingDegrees;
-          
+            delta -= 360;
           }
-            
-        }
-        // Negative Delta
-        else
-        {
-
-          // If my heading delta greater than 180 degrees, the change required is 180-delta?
-          if(abs(headingDelta) > 180)
-          {
-
-            Serial.println("CASE 3");
-            appliedAngleChange = -(360 - (abs(currentTargetHeadingDegrees)));
-            
-          }
-          else
-          {
-
-            Serial.println("CASE 4");
-            appliedAngleChange = currentTargetHeadingDegrees;
-            
-          }
-          
-        }
-
         
-        // Save our new heading, always
-        currentTargetHeadingDegrees = parsedHeadingInteger;
+        }
 
-        // And make our new target steps based on the smallest change to get to new heading
-        targetStepsFromHome = appliedAngleChange * 5.688888888889;
+        // Now that we have our delta, apply it in terms of steps difference from current target steps
+        // E.g. if we had heading of 5 degrees, and new heading 355, our delta is -10, which is target 
+        // motor steps of -10 * 5.688888888889
+        targetStepsFromHome += delta * 5.688888888889;
         
         
         //Serial.print("Received ");
@@ -358,16 +326,12 @@ void showNewNumber()
         Serial.print(", Data as Number=");
         Serial.print(parsedHeadingInteger);
         Serial.print(", NEW HEADING=");
-        Serial.print(currentTargetHeadingDegrees);
+        Serial.print(currentHeadingDegrees);
         Serial.print(", TARGETSTEPS=");
         Serial.print(targetStepsFromHome);
         Serial.print(", DELTA=");
-        Serial.print(headingDelta);
-        Serial.print(", APP_ANGLE_CHANGE=");
-        Serial.println(appliedAngleChange);
+        Serial.println(delta);
         
-
-
         
         newData = false;
     
