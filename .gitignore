@@ -4,3 +4,8 @@
 # Other bits to ignore
 *.exe
 
+
+/ArduinoSerialCommunicator/bin/*
+
+
+/UnityArduino/*
