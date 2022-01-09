@@ -247,6 +247,10 @@ void receiveDataWord()
       
         receivedChar = Serial.read();
 
+        Serial.print("receivedChar='");
+        Serial.print(receivedChar, DEC);
+        Serial.println("'");
+
         if (receivedChar != endMarker) 
         {
           
@@ -281,6 +285,20 @@ void showNewNumber()
       
         parsedHeadingInteger = 0;
         parsedHeadingInteger = atoi(receivedSerialChars);
+
+
+        // Debug:
+        if(parsedHeadingInteger == 359)
+        {
+          digitalWrite(LEDPinGreen, HIGH);
+          digitalWrite(LEDPinRed, LOW);
+        }
+        else
+        {
+          digitalWrite(LEDPinGreen, LOW);
+          digitalWrite(LEDPinRed, HIGH);
+        }
+
 
         // Assume we're given value 0-360 degrees
         // TODO: Calculate target HEADING in degrees
