@@ -12,6 +12,8 @@ Radio Frequency Dial:
 -->Could put weight on "how much static to mix in" based on "how close the dial is to the station" value
 -->Would require all samples have same bitrate, sample rate, are mono, etc.
 
+-Record outgoing communication, store it, and randomly play it back on a frequency with some modified audio effects!
+
 --http://hyperphysics.phy-astr.gsu.edu/hbase/Electronic/opampvar5.html
 
 -or maybe have one Arduino command several MP3 modules via serial commands and have each module playback a different file from its SD card
